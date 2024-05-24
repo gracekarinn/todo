@@ -6,6 +6,7 @@ const config: Config = {
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  darkMode: "class",
   theme: {
     extend: {
       backgroundImage: {
@@ -13,15 +14,6 @@ const config: Config = {
         "gradient-conic":
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
-    },
-  },
-  plugins: [],
-};
-module.exports = {
-  content: ["./src/**/*.{ts,tsx}"],
-  darkMode: "class",
-  theme: {
-    extend: {
       animation: {
         first: "moveVertical 30s ease infinite",
         second: "moveInCircle 20s reverse infinite",
@@ -32,13 +24,13 @@ module.exports = {
       keyframes: {
         moveHorizontal: {
           "0%": {
-            transform: "translateX(-50%) translateY(-10%)",
+            transform: "translateX(-50%) translateY(50%)",
           },
           "50%": {
-            transform: "translateX(50%) translateY(10%)",
+            transform: "translateX(50%) translateY(50%)",
           },
           "100%": {
-            transform: "translateX(-50%) translateY(-10%)",
+            transform: "translateX(-50%) translateY(50%)",
           },
         },
         moveInCircle: {
@@ -54,16 +46,33 @@ module.exports = {
         },
         moveVertical: {
           "0%": {
-            transform: "translateY(-50%)",
+            transform: "translateY(50%)",
           },
           "50%": {
             transform: "translateY(50%)",
           },
           "100%": {
-            transform: "translateY(-50%)",
+            transform: "translateY(50%)",
           },
         },
       },
+      backdropBlur: {
+        xs: "2px",
+      },
+      colors: {
+        glass: "rgba(255, 255, 255, 0.1)",
+      },
+      borderColor: {
+        glass: "rgba(255, 255, 255, 0.18)",
+      },
+      boxShadow: {
+        glass: "0 4px 30px rgba(0, 0, 0, 0.1)",
+      },
+    },
+  },
+  variants: {
+    extend: {
+      backdropBlur: ["hover", "focus"],
     },
   },
   plugins: [],

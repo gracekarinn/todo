@@ -2,97 +2,225 @@
 import React, { useState, useEffect, ChangeEvent } from 'react';
 import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
+import Navbar from './Navbar';
+import { Category } from './constant';
+import { toast } from 'sonner';
 
 interface Task {
+    name: string;
+    category: string;
+    userID: string;
+}
+
+interface Category {
     id: number;
-    text: string;
+    name: string;
 }
 
 export default function Dashboard() {
     const [task, setTask] = useState<string>('');
-    const [tasks, setTasks] = useState<Task[]>([]);
-    const [user, setUser] = useState<any>([]);
+    const [tasks, setTasks] = useState<any[]>([]);
+    const [selectedCategory, setSelectedCategory] = useState<string>('');
+    const [user, setUser] = useState<any>(null);
     const url = process.env.BACKEND_URL as string;
+    const [filter, setFilter] = useState<string>('all');
     const router = useRouter();
 
     const fetchUser = () => {
-    auth.onAuthStateChanged((user) => {
-      if (!user) {
-        router.push("/");
-      } else {
-        setUser(user);
-      }});
+        auth.onAuthStateChanged((user) => {
+            if (!user) {
+                router.push("/");
+            } else {
+                setUser(user);
+            }
+        });
     };
 
-    const fetchTask = async() => {
-        try {
-            const response = await fetch(url + "?userID=" + user.email)
-            const data = await response.json() 
-            setTasks(data)
-        } catch (error) {
-            console.log(error)
+    const fetchTasks = async () => {
+        if (user) {
+            try {
+                const response = await fetch(`${url}?userID=${user.email}`);
+                const data = await response.json();
+                setTasks(data);
+            } catch (error) {
+                console.log(error);
+            }
         }
-    }
+    };
 
     useEffect(() => {
-        fetchUser()
+        fetchUser();
     }, []);
 
     useEffect(() => {
-        fetchTask()
+        fetchTasks();
     }, [user]);
 
-    const addTask = () => {
-        if (task.trim()) {
-            const newTask: Task = { id: Date.now(), text: task };
-            const newTasks = [...tasks, newTask];
-            setTasks(newTasks);
-            localStorage.setItem('tasks', JSON.stringify(newTasks));
+    const addTask = async () => {
+        if (task.trim() && selectedCategory) {
+            const newTask: Task = { name: task, category: selectedCategory, userID: user.email };
+            console.log(newTask) 
+            console.log(JSON.stringify(newTask))
+            try {
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(newTask)
+                });
+                const data = await response.json();
+                const newTasks = [...tasks, data];
+                setTasks(newTasks);
+                toast.success("Sukses untuk ditambahkan!");
+            } catch (error) {
+                toast.error("Terjadi kesalahan, coba lagi nanti.");
+                console.log(error);
+            }
             setTask('');
         }
     };
 
-    const deleteTask = (id: number) => {
-        const newTasks = tasks.filter(task => task.id !== id);
-        setTasks(newTasks);
-        localStorage.setItem('tasks', JSON.stringify(newTasks));
+    const deleteTask = async(id: string) => {
+        const targetUrl = `${url}/${id}`
+        try {
+            const response = await fetch(targetUrl, {
+                method: "DELETE",
+                })
+            setTasks((prevData) =>
+                prevData.filter((data) => 
+                    data.id !== id 
+                )
+            )
+            toast.success("Yeay kehapus!");
+        } catch (error) {
+            toast.error("Terjadi kesalahan, coba lagi nanti.");
+            console.log(error);
+        }
+    };
+
+    const toggleTaskStatus = async (id: string, finished: boolean) => {
+        const targetUrl = `${url}/${id}`
+        try {
+            const response = await fetch(targetUrl, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({finish: finished})
+            })
+        const data = await response.json(); 
+        setTasks((prevData) => 
+            prevData.map((task) => 
+                task.id === data.id ? {...task, finish: finished} : task
+            )
+        )
+        toast.success("Sukses mengubah status!")
+        } catch (error) {
+            toast.error("Terjadi kesalahan, coba lagi nanti.");
+            console.log(error);
+        }
     };
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
         setTask(e.target.value);
     };
 
+    const handleCategoryChange = (e: ChangeEvent<HTMLSelectElement>) => {
+        setSelectedCategory(e.target.value);
+    };
+
+    const handleFilterChange = (e: ChangeEvent<HTMLSelectElement>) => {
+        setFilter(e.target.value);
+    };
+
+    const filteredTasks = tasks.filter(task => {
+        if (filter === 'finished') {
+            return task.finish;
+        } else if (filter === 'unfinished') {
+            return !task.finish;
+        } else {
+            return true;
+        }
+    });
+
     return (
-        <div className="flex-col flex items-center justify-center p-4 bg-white">
-            <h1 className="text-2xl font-bold mb-4">To-Do List</h1>
-            <div className="mb-4">
-                <input
-                    type="text"
-                    value={task}
-                    onChange={handleInputChange}
-                    placeholder="Enter a new task"
-                    className="p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                />
-                <button
-                    onClick={addTask}
-                    className="ml-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                    Add
-                </button>
-            </div>
-            <ul className="list-disc list-inside">
-                {tasks.map(task => (
-                    <li key={task.id} className="mb-2 flex justify-between items-center">
-                        {task.text}
-                        <button
-                            onClick={() => deleteTask(task.id)}
-                            className="ml-4 px-2 py-1 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+        <div className="min-h-screen bg-black"
+            style ={{
+            backgroundImage: 'url(/header.png)',
+            backgroundSize: 'cover',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'center center'}}>
+            <Navbar />
+            <main className="p-4">
+                <div className="max-w-2xl mx-auto bg-black bg-opacity-70 shadow-lg rounded-lg p-6">
+                    <div className="mb-6">
+                        <h2 className="text-2xl text-white font-semibold mb-4">Add Task</h2>
+                        <div className="space-y-4 md:space-y-0 md:flex md:space-x-4">
+                            <input 
+                                type="text" 
+                                value={task} 
+                                onChange={handleInputChange} 
+                                placeholder="Add a new task"
+                                className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                             <select 
+                                value={selectedCategory} 
+                                onChange={handleCategoryChange} 
+                                className="px-1 py-2 border rounded-lg"
+                            >
+                                <option value="">Select Category</option>
+                                {Category.map(category => (
+                                    <option key={category.id} value={category.value}>
+                                        {category.label}
+                                    </option>
+                                ))}
+                            </select>
+                            <button 
+                                onClick={addTask}
+                                className="bg-blue-500 text-white mx-2 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-700"
+                            >
+                                Add Task
+                            </button>
+                        </div>
+                    </div>
+                    <div className="mb-6">
+                        <h2 className="text-2xl font-semibold mb-4 text-white">Filter Tasks</h2>
+                        <select 
+                            value={filter} 
+                            onChange={handleFilterChange} 
+                            className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                            Delete
-                        </button>
-                    </li>
-                ))}
-            </ul>
+                            <option value="all">All</option>
+                            <option value="finished">Finished</option>
+                            <option value="unfinished">Unfinished</option>
+                        </select>
+                    </div>
+                    <ul className="space-y-4 overflow-scroll">
+                    {filteredTasks.map((task, index) => (
+                            <li key={index} className="flex items-center justify-between p-4 w-fit sm:w-full bg-gray-800 rounded-lg">
+                                <span 
+                                    className={`flex-1 text-white ${task.finish ? 'line-through text-gray-500' : ''}`}
+                                >
+                                    {task.name} -  <span className="text-sm text-gray-400">{task.category}</span>
+                                </span>
+                                <button 
+                                    onClick={() => toggleTaskStatus(task.id, !task.finish)}
+                                    className={`ml-2 px-4 py-2 rounded ${task.finish ? 'bg-green-500 text-white' : 'bg-yellow-500 text-white'}`}
+                                >
+                                    {task.finish ? 'Finished' : 'Not finished'}
+                                </button>
+                                <button 
+                                    onClick={() => deleteTask(task.id)}
+                                    className="ml-2 px-4 py-2 bg-red-500 text-white rounded"
+                                >
+                                    Delete
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            </main>
         </div>
     );
 }

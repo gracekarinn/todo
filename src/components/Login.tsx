@@ -20,7 +20,7 @@ const FormSchema = z.object({
 type FormValues = z.infer<typeof FormSchema>;
 
 
-export default function Login() {
+export default function Login({ handleSignUpClick = () => {} }) {
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
   });
@@ -37,51 +37,68 @@ export default function Login() {
     })
     .catch((error) => {
       const errorCode = error.code;
-      const errorMessage = error.message;
+      if (errorCode === 'auth/invalid-credential') {
+        toast.error('User not found. Please sign up first.');
+      } else {
+        const errorMessage = error.message;
+        toast.error(errorMessage);
+      }
     });
   }
-    return (
-        <main>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
-                <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-white">
-                    Email
-                    </label>
-                    <input
-                    id="email"
-                    type="email"
-                    {...form.register("email")}
-                    required
-                    className="w-full my-5 p-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    />
-                    {form.formState.errors.email && (
-                      <p className="mt-2 text-sm text-red-600">{form.formState.errors.email.message}</p>
-                    )}
-                </div>
-                <div>
-                    <label htmlFor="password" className="block text-sm font-medium text-white">
-                    Password
-                    </label>
-                    <input
-                    id="password"
-                    type="password"
-                    {...form.register("password")}
-                    required
-                    className="w-full p-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm my-5"
-                    />
-                    {form.formState.errors.password && (
-                      <p className="mt-2 text-sm text-red-600">{form.formState.errors.password.message}</p>
-                  )}
-                </div>
-                <div>
-                <button
-                  type="submit"
-                  className="flex justify-center w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  Login
-                </button>
-              </div>
-            </form>
+  return (
+    <main className="flex w-full items-center justify-center">
+      <form
+        className="space-y-6 py-15  bg-gray-800 bg-opacity-50 border border-blue-500 shadow-lg rounded-lg p-10 text-white w-full max-w-md neon-border"
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
+        <div>
+          <h2 className="text-2xl text-white font-bold text-center">Login</h2>
+          <label htmlFor="email" className="block text-sm font-medium text-blue-400">
+            Email
+          </label>
+          <input
+            id="email"
+            {...form.register("email")}
+            type="email"
+            className="w-full p-3 mt-1 bg-gray-700 border border-blue-500 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-white placeholder-gray-400"
+            placeholder="Enter your email"
+          />
+          {form.formState.errors.email && (
+            <p className="mt-2 text-sm text-red-500">{form.formState.errors.email.message}</p>
+          )}
+        </div>
+        <div>
+          <label htmlFor="password" className="block text-sm font-medium text-blue-400">
+            Password
+          </label>
+          <input
+            id="password"
+            {...form.register("password")}
+            type="password"
+            className="w-full p-3 mt-1 bg-gray-700 border border-blue-500 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-white placeholder-gray-400"
+            placeholder="Enter your password"
+          />
+          {form.formState.errors.password && (
+            <p className="mt-2 text-sm text-red-500">{form.formState.errors.password.message}</p>
+          )}
+        </div>
+        <div className="flex-row items-center justify-between">
+          <button
+            type="submit"
+            className="flex justify-center w-full px-4 py-2 mt-4 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            Login
+          </button>
+        </div>
+        <div className="text-sm text-center p-3">
+          <a
+            className="font-medium text-red-600 hover:text-red-500 cursor-pointer"
+            onClick={handleSignUpClick}
+          >
+            Don't have an account? Sign Up
+          </a>
+        </div>
+      </form>
     </main>
-    )
-}
+  );
+};

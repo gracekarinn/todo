@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import Login from "@/components/Login";
 import { Register } from "@/components/Register";
 import { auth } from "@/lib/firebase";
-import { BackgroundGradientAnimation } from "@/components/ui/background"; 
+import { BackgroundGradientAnimation } from "@/components/ui/background";
 
 export default function Home() {
   const [showLogin, setShowLogin] = useState(false);
@@ -32,7 +32,7 @@ export default function Home() {
   }, []);
 
   return (
-    <BackgroundGradientAnimation 
+    <BackgroundGradientAnimation
       gradientBackgroundStart="rgb(108, 0, 162)"
       gradientBackgroundEnd="rgb(0, 17, 82)"
       firstColor="18, 113, 255"
@@ -44,30 +44,27 @@ export default function Home() {
       size="80%"
       blendingValue="hard-light"
       interactive={true}
-      containerClassName="relative"
+      containerClassName="absolute inset-0"
+      className="w-full h-full"
     >
-      <main className="flex-col min-h-screen bg-black items-center justify-between p-24">
-        <div className="z-10 text-center text-white flex-col w-full mx-auto max-w-5xl items-center justify-between font-serif text-sm lg:flex my-10">
-          <h1 className="md:text-6xl text-3xl font-bold text-center">Welcome to Si Catat</h1>
-          <span className="text-center text-xl md:text-2xl">Write every one of your tasks</span>
+      <main className="flex flex-col md:px-10 lg:flex-row items-center justify-center w-full min-h-screen bg-black">
+        <div className="text-center text-white w-full mx-auto max-w-5xl font-serif my-5">
+          <h1 className="md:text-6xl text-3xl font-extrabold font-sans">Welcome to Si Catat</h1>
+          <span className="text-xl md:text2xl font-extrabold font-sans">Write every one of your tasks :)</span>
         </div>
-        <div className="max-w-md mx-auto p-6 space-y-6 bg-black rounded-lg shadow-md">
+        <div className="max-w-md w-full mx-auto lg:mx-10 p-6 md:p-4 bg-opacity-75 rounded-lg shadow-md flex flex-col items-center justify-center z-20">
           {showLogin ? (
             <>
-              <h2 className="text-2xl font-bold text-center">Login</h2>
-              <Login />
-              <div className="text-sm text-center p-3">
-                <a className="font-medium text-blue-600 hover:text-blue-500" onClick={handleSignUpClick}>
-                  Don't have an account? Sign Up
-                </a>
-              </div>
+              <Login handleSignUpClick={handleSignUpClick} />
             </>
           ) : (
             <>
-              <h2 className="text-2xl font-bold text-center">Sign Up</h2>
               <Register>
                 <div className="text-sm text-center p-3">
-                  <a className="font-medium text-blue-600 hover:text-blue-500" onClick={handleLoginClick}>
+                  <a
+                    className="font-medium text-blue-600 hover:text-blue-500 cursor-pointer"
+                    onClick={handleLoginClick}
+                  >
                     Already have an account? Login
                   </a>
                 </div>

@@ -95,7 +95,7 @@ export default function Login({ handleSignUpClick = () => {} }) {
             className="font-medium text-red-600 hover:text-red-500 cursor-pointer"
             onClick={handleSignUpClick}
           >
-            Don't have an account? Sign Up
+            Don&apos;t have an account? Sign Up
           </a>
         </div>
       </form>
